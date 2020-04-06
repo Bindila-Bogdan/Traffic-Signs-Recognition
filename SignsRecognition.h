@@ -15,19 +15,19 @@
 #include <windows.h>
 
 
-const std::string DUMP_FOLDER = "//home//pi//Documents//RoadSignsRecognition//DumpFolder";
-const CString FOLDER_NAME_WINDOWS = "..\\SignsRecognitionC++\\Images";
-//const CString FOLDER_NAME_WINDOWS = "..\\SignsRecognitionC++\\Benchmark";
+const std::string DUMP_FOLDER = "E:\\Signs_Recognition\\SignsRecognitionC++\\dumps\\";
+//const std::string DUMP_FOLDER = "//home//pi//Documents//RoadSignsRecognition//DumpFolder";
+const CString FOLDER_NAME_WINDOWS = "E:\\Signs_Recognition\\SignsRecognitionC++\\exam";
 const CString FOLDER_NAME_LINUX = "//home//pi//Documents//RoadSignsRecognition//BenchmarkFolder";
 
 class SignsRecognition{
 	//BEFORE MAX_GAP VALUE WAS 10
-	static const int minLength = 75;
-	static const int maxGap = 3;
+	static const int minLength = 50;
+	static const int maxGap = 5;
 	static const bool right = false, dumpRois = false, dumpImages = false, contestMode = false;
 
 public:
-	static std::vector<cv::Mat> getRois(cv::Mat& originalImage, cv::Mat& image, std::string imageNumber);
+	static std::vector<cv::Mat> getRois(cv::Mat& originalImage, cv::Mat& image, std::vector<cv::Mat> masks, std::string imageNumber, bool right);
 	static void readFromCamera();
 	static void readFromFolderWindows();
 	static void readFromFolderLinux();

@@ -9,8 +9,8 @@
 #define MIN_INTERSECTION 0.5
 
 class LinesProcessing {
-	static const int offsetAngle = 15;
-	static const int matrixSize = 5;
+	static const int offsetAngle = 20;
+	static const int matrixSize = 3;
 	static const int maxDistance = 50;
 
 public:

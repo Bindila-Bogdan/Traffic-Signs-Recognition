@@ -24,7 +24,6 @@ bool LinesProcessing::angleInInterval(cv::Vec4i line) {
 }
 
 std::vector<cv::Vec4i> LinesProcessing::filterByAngle(std::vector<cv::Vec4i> lines) {
-	//IS WORKING?
 	if (lines.size() == 0)
 		return lines;
 	else {
@@ -53,7 +52,6 @@ std::map<int, cv::Vec4i> LinesProcessing::removeNeighbours(std::map<int, cv::Vec
 	cv::Vec4i bestLine = lineDict[currentColor];
 	int keepColor = currentColor;
 	std::map<int, cv::Vec4i> lineDictCopy = lineDict;
-	//IT WORKS?
 	cv::Vec4i line;
 	std::set<int>::iterator itr;
 	for (itr = colors.begin(); itr != colors.end(); ++itr) {
@@ -128,7 +126,6 @@ std::vector<cv::Vec4i> LinesProcessing::supressLines(std::vector<cv::Vec4i> line
 			y2 = line[3];
 			line = cv::Vec4i(line[2], line[3], line[0], line[1]);
 		}
-		//IT'S SEEN IN OTHER CALLES?
 		cv::line(imageClone, cv::Point(line[0], line[1]), cv::Point(line[2], line[3]), lineNumber,1);
 		lineDict[lineNumber] = line;
 		lineNumber++;
@@ -145,7 +142,6 @@ std::vector<cv::Vec4i> LinesProcessing::supressLines(std::vector<cv::Vec4i> line
 				inside = true;
 		if (inside) {
 			std::set<int> currentColors;
-			//MODIFICATIONS ARE VISUALIZED AFTER MULTIPLE CALLS?
 			colors = checkMatrix(lineDict[itr1->first][2], lineDict[itr1->first][3], itr1->first, imageClone);
 			for (itrColor = colors.begin(); itrColor != colors.end(); ++itrColor) {
 				inside1 = false;

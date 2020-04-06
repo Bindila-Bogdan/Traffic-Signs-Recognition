@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "NeuralNetwork.h"
 
-const auto model = fdeep::load_model("fdeep_model_32x32.json");
+const auto model = fdeep::load_model("fdeep_model.json");
 
 cv::Mat NeuralNetwork::prepareImage(cv::Mat& image, bool contestMode) {
     int pixelValue;
@@ -11,8 +11,6 @@ cv::Mat NeuralNetwork::prepareImage(cv::Mat& image, bool contestMode) {
     cv::Mat equalizedResizedImage = resizedImage.clone();
     cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(CLIP_LIMIT, cv::Size(patchSize, patchSize));
     clahe->apply(resizedImage, equalizedResizedImage);
-    if(!contestMode)
-        imshow("ROI", equalizedResizedImage);
     return equalizedResizedImage;
 }
 

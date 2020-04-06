@@ -11,8 +11,8 @@
 const std::string signs[5] = { "Other", "Parking", "Pedestrian", "Priority", "Stop" };
 
 class NeuralNetwork{
-	static const int imgSize = 32;
-	static const int patchSize = 4;
+	static const int imgSize = 64;
+	static const int patchSize = 8;
 
 public:
 	static cv::Mat prepareImage(cv::Mat& image, bool contestMode);

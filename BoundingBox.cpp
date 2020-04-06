@@ -24,6 +24,17 @@ float BoundingBox::computeOffset(int xa1, int ya1, int xa2, int ya2, int xb1, in
 		return (-90.0f + degreeAngle);
 }
 
+bool BoundingBox::intersection(int min_ax, int min_ay, int max_ax, int max_ay, int min_bx, int min_by, int max_bx, int max_by) {
+	cv::Vec4i smallerBoundingBox = cv::Vec4i(0, 0, 0, 0);
+	if (((((min_bx <= min_ax && min_ax <= max_bx) || (min_bx <= max_ax && max_ax <= max_bx)) &&
+		((min_by <= min_ay && min_ay <= max_by) || (min_by <= max_ay && max_ay <= max_by)))) ||
+		((((min_ax <= min_bx && min_bx <= max_ax) || (min_ax <= max_bx && max_bx <= max_ax)) &&
+		((min_ay <= min_by && min_by <= max_ay) || (min_ay <= max_by && max_by <= max_ay)))))
+		return true;
+	else
+		return false;
+}
+
 int* BoundingBox::inside(int min_ax, int min_ay, int max_ax, int max_ay, int min_bx, int min_by, int max_bx, int max_by) {
 	int bigBoundingBox[4];
 	if ((min_bx <= min_ax && min_ax <= max_bx) && (min_bx <= max_ax && max_ax <= max_bx)
@@ -43,7 +54,6 @@ int* BoundingBox::inside(int min_ax, int min_ay, int max_ax, int max_ay, int min
 		return bigBoundingBox;
 	}
 	else {
-		//CHECK IF bigBoundingBox has size == 0 if isn't initialized
 		return bigBoundingBox;
 	}
 }
@@ -68,11 +78,9 @@ std::vector<cv::Vec4i> BoundingBox::nonMaximaSupression(std::vector<cv::Vec4i> b
 				if (coordinates[0] != 0) {
 					for (int pos = 0; pos < boxes.size(); pos++) {
 						if (boxes[pos] == boxes[i] || boxes[pos] == boxes[j]) {
-							//UNDERNEATH STATEMENT WORKS?
 							boxes[pos] = cv::Vec4i(coordinates[0], coordinates[1], coordinates[2], coordinates[3]);
 						}
 					}
-					//WHY? 
 					boxes[i] = cv::Vec4i(coordinates[0], coordinates[1], coordinates[2], coordinates[3]);
 					boxes[j] = cv::Vec4i(coordinates[0], coordinates[1], coordinates[2], coordinates[3]);
 				}
@@ -130,12 +138,13 @@ cv::Vec4i BoundingBox::signCrop(cv::Vec4i line1, cv::Vec4i line2, int width, int
 	}
 }
 
-std::vector<cv::Vec4i> BoundingBox::filterBoundingBoxes(int height, int width, std::map<int, std::vector<cv::Vec4i>> groups) {
+std::map<int, cv::Vec4i> BoundingBox::filterBoundingBoxes(int height, int width, std::map<int, std::vector<cv::Vec4i>> groups) {
 	int area, w, h;
 	float ratio1, ratio2;
 	std::map<int, std::vector<cv::Vec4i>>::iterator itr;
-	std::vector<cv::Vec4i> boxes;
+	std::map<int, cv::Vec4i > boxes;
 	cv::Vec4i crop;
+	int index = -2;
 	int minX, minY, maxX, maxY;
 	for (itr = groups.begin(); itr != groups.end(); ++itr) {
 		if ((itr->second)[0][2] < (itr->second)[1][2])
@@ -152,11 +161,86 @@ std::vector<cv::Vec4i> BoundingBox::filterBoundingBoxes(int height, int width, s
 		if (((maxY - minY) > 0) && ((maxX - minX) > 0) && (area > minArea)) {
 			ratio1 = h / float(w);
 			ratio2 = w / float(h);
-			if (ratio1 < 2.0f && ratio2 < 2.0f)
-				boxes.push_back(cv::Vec4i(minX, minY, maxX, maxY));
+			if (ratio1 < 1.5f && ratio2 < 1.5f) {
+				boxes.insert(std::pair<int, cv::Vec4i>(index-- , cv::Vec4i(minX, minY, maxX, maxY)));
+			}
 		}
 	}
 	//std::vector<cv::Vec4i> finalBoxes = nonMaximaSupression(boxes);
 	//return finalBoxes;
+	return boxes;
+}
+
+std::map<int, cv::Vec4i> BoundingBox::determineColorBasedBoxes(std::vector<cv::Mat> masks, cv::Mat& originalImage, bool right) {
+	std::map<int, cv::Vec4i> boxes;
+	int xMin, yMin, xMax, yMax, imageWidth = masks[0].cols, imageHeight = masks[0].rows, maxArea;
+	int marginOffsetWidth, marginOffsetHeight;
+	int redIndex = 1, blueIndex = 2, yellowIndex = 3;
+	if (right)
+		maxArea = masks[0].rows * masks[1].cols * 2;
+	else
+		maxArea = masks[0].rows * masks[1].cols;
+	for (int index = 0; index < masks.size(); index++) {
+		std::vector<std::vector<cv::Point> > currentContours;
+		cv::findContours(masks[index], currentContours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+		for (int t = 0; t < currentContours.size(); t++) {
+			cv::Rect rect = cv::boundingRect(currentContours[t]);
+			if (rect.width / rect.height < 1.5 && rect.height / rect.width < 1.5 && ((rect.width * rect.height) > minArea) && ((rect.width * rect.height) < maxArea / 5.0f)) {
+				xMin = rect.x;
+				yMin = rect.y;
+				xMax = rect.x + rect.width;
+				yMax = rect.y + rect.height;
+				if (index == 3) {
+					marginOffsetWidth = rect.width / 2.5;
+					marginOffsetHeight = rect.height / 2.5;
+				}
+				else
+				{
+					marginOffsetWidth = 0;
+					marginOffsetHeight = 0;
+				}
+				if (index == 1 || index == 2) {
+					int width = xMax - xMin;
+					int height = yMax - yMin;
+					int diff = width - height;
+					if (diff > 0) {
+						if (yMin - diff > 0)
+							yMin -= diff;
+						else
+							yMin = 0;
+					}
+				}
+				if (xMin - int(rect.width / 20) - marginOffsetWidth > 0)
+					xMin -= (int(rect.width / 20) + marginOffsetWidth);
+				else
+					xMin = 0;
+				if (yMin - int(rect.height / 20) - marginOffsetHeight > 0)
+					yMin -= (int(rect.height / 20) + marginOffsetHeight);
+				else
+					yMin = 0;
+				if (xMax + int(rect.width / 20) + marginOffsetWidth < imageWidth - 1)
+					xMax += (int(rect.width / 20) + marginOffsetWidth);
+				else
+					xMax = imageWidth - 1;
+				if (yMax + int(rect.height / 20) + marginOffsetHeight < imageHeight - 1)
+					yMax += (int(rect.height / 20) + marginOffsetHeight);
+				else
+					yMax = imageHeight - 1;
+				cv::Vec4i box = { xMin, yMin, xMax, yMax };
+				if (index == 0 || index == 1) {
+					boxes.insert(std::pair<int, cv::Vec4i>(redIndex, box));
+					redIndex += 10;
+				}
+				else if (index == 2) {
+					boxes.insert(std::pair<int, cv::Vec4i>(blueIndex, box));
+					blueIndex += 10;
+				}
+				else if (index == 3) {
+					boxes.insert(std::pair<int, cv::Vec4i>(yellowIndex, box));
+					yellowIndex += 10;
+				}
+			}
+		}
+	}
 	return boxes;
 }
