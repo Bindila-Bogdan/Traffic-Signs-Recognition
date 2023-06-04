@@ -2,7 +2,18 @@
 
 ### Real-time traffic signs detection and recognition module for Raspberry Pi
 
-This module represented a component of an autonomous 1/10 scale car  with with Back On Track team has competed at Bosch Future Mobility Challenge 2020. 
+This module represents a component of an autonomous 1/10 scale car with which Back On Track team has competed at Bosch Future Mobility Challenge 2020. It was designed to detect four types of miniture road signs positioned on poles.
+
+## Features
+
+- Does not need calibration
+- Two image preprocessing pipelines that run in parallel:
+  - ROI extraction based on pole
+  - Detection based on color segmentation
+- Robust to occlusions and innacurate color representation
+- Optimized convolutional neural network
+- Inferece done directly in C++
+- Computes distances to sign
 
 ## Diagram
 
