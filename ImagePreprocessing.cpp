@@ -1,11 +1,12 @@
 #include "stdafx.h"
 #include "ImagePreprocessing.h"
 
-cv::Mat ImagePreprocessing::imageEnhancement(cv::Mat& image, bool contestMode) {
+cv::Mat ImagePreprocessing::imageEnhancement(cv::Mat &image, bool contestMode)
+{
 	if (!contestMode)
 		cv::imshow("Input image", image);
 	cv::Mat lookUpTable(1, 256, CV_8U);
-	uchar* p = lookUpTable.ptr();
+	uchar *p = lookUpTable.ptr();
 	for (int i = 0; i < 256; ++i)
 		p[i] = cv::saturate_cast<uchar>(pow(i / 255.0, gamma) * 255.0);
 	cv::Mat res = cv::Mat(image.rows, image.cols, CV_8UC3);
@@ -15,7 +16,8 @@ cv::Mat ImagePreprocessing::imageEnhancement(cv::Mat& image, bool contestMode) {
 	return res;
 }
 
-cv::Mat ImagePreprocessing::autoCanny(cv::Mat& image) {
+cv::Mat ImagePreprocessing::autoCanny(cv::Mat &image)
+{
 	cv::Mat imageCopy = cv::Mat(image.rows, image.cols, CV_8UC1);
 	int thresholdValue = threshold(image, imageCopy, 0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
 	cv::Mat cannyImage = cv::Mat(image.rows, image.cols, CV_8UC1);
@@ -23,7 +25,8 @@ cv::Mat ImagePreprocessing::autoCanny(cv::Mat& image) {
 	return cannyImage;
 }
 
-cv::Mat ImagePreprocessing::preprocessImage(cv::Mat& image, bool contestMode) {
+cv::Mat ImagePreprocessing::preprocessImage(cv::Mat &image, bool contestMode)
+{
 	cv::Mat grayscale = cv::Mat(image.rows, image.cols, CV_8UC1);
 	cvtColor(image, grayscale, cv::COLOR_BGR2GRAY);
 	if (!contestMode)
@@ -41,7 +44,8 @@ cv::Mat ImagePreprocessing::preprocessImage(cv::Mat& image, bool contestMode) {
 	return dilatedImage;
 }
 
-std::vector<cv::Mat> ImagePreprocessing::generateColorMasks(cv::Mat& image) {
+std::vector<cv::Mat> ImagePreprocessing::generateColorMasks(cv::Mat &image)
+{
 	std::vector<cv::Mat> masks;
 	cv::Mat hsv = cv::Mat(image.rows, image.cols, CV_8UC3);
 	cv::cvtColor(image, hsv, cv::COLOR_BGR2HSV);
@@ -74,4 +78,3 @@ std::vector<cv::Mat> ImagePreprocessing::generateColorMasks(cv::Mat& image) {
 
 	return masks;
 }
-
